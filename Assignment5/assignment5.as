@@ -11,7 +11,7 @@ stderr	equ	3
 
 
 SECTION .data
-string: db "This program incrypts and decrypts a string"
+string: db "This program incrypts and decrypts a string."
 string_len equ	$-string
 
 newline: db 0Ah
@@ -19,6 +19,8 @@ newline_len equ $-newline
 
 key: db "R@ndOm<EY!SrAnD#m!XxVQrzHl,l;"
 key_len:	equ	$-key
+
+
 
 i: dd 0
 
@@ -38,8 +40,10 @@ _main:
 	mov edx, newline_len
 	call _display
 
+	call _addto
 	call _flip
 	call _encode
+	call _redshift
 
 	mov ecx, string
 	mov edx, string_len
@@ -48,8 +52,10 @@ _main:
 	mov edx, newline_len
 	call _display
 
+	call _blueshift
 	call _encode
 	call _flip
+	call _subfrom
 
 	mov ecx, string
 	mov edx, string_len
@@ -58,12 +64,104 @@ _main:
 	mov edx, newline_len
 	call _display
 
-	jp _exit
+	jmp _exit
 
 _display:
 	mov eax, sys_write
 	mov ebx, stdout
 	int	80h
+	ret
+
+_addto:
+	xor ecx, ecx
+	mov ecx, string_len
+	xor eax, eax
+	mov [i], eax
+
+	adderloop:
+	mov ebx, [i]
+	mov al, [string + ebx]
+
+	add al, bl
+
+	mov [string + ebx], al
+
+	mov edx, [i]    ;move the value of i to edx
+	inc edx         ;increment the value in edx by 1
+	mov [i], edx
+
+	dec ecx
+	jne adderloop
+	ret
+
+_subfrom:
+	xor ecx, ecx
+	mov ecx, string_len
+	xor eax, eax
+	mov [i], eax
+
+	subloop:
+	mov ebx, [i]
+	mov al, [string + ebx]
+
+	sub al, bl
+
+	mov [string + ebx], al
+
+	mov edx, [i]    ;move the value of i to edx
+	inc edx         ;increment the value in edx by 1
+	mov [i], edx
+
+	dec ecx
+	jne subloop
+	ret
+
+
+_redshift:
+	xor ecx, ecx
+	mov ecx, string_len
+	xor eax, eax
+	mov [i], eax
+
+	redloop:
+	push ecx
+	mov ebx, [i]
+	mov al, [string + ebx]
+	mov cl, [i]
+	ror al, cl
+	mov [string + ebx], al
+
+	mov edx, [i]    ;move the value of i to edx
+	inc edx         ;increment the value in edx by 1
+	mov [i], edx
+
+	pop ecx
+	dec ecx
+	jne redloop
+	ret
+
+
+_blueshift:
+	xor ecx, ecx
+	mov ecx, string_len
+	xor eax, eax
+	mov [i], eax
+
+	blueloop:
+	push ecx
+	mov ebx, [i]
+	mov al, [string + ebx]
+	mov cl, [i]
+	rol al, cl
+	mov [string + ebx], al
+
+	mov edx, [i]    ;move the value of i to edx
+	inc edx         ;increment the value in edx by 1
+	mov [i], edx
+
+	pop ecx
+	dec ecx
+	jne blueloop
 	ret
 
 _encode:
@@ -110,19 +208,19 @@ _flip:       ;set destination for loop
 
 	flip_loop:
 	;calculate the location in the array to move too.
-	mov eax, [i]                ;move the vlaue in i to
+	mov al, [i]                ;move the vlaue in i to
 	mov edx, 1    ;move the size of a dword to edx
 	mul edx                     ;multiply the value in eax (i) by the size of a dword
 
 	;move edx and ebx to swap locations in array
-	mov dx, ax                            ;move the value of eax to edx
-	mov bx, string_len - 1    ;move the location of the last element in the array to ebx
-	sub bx, ax                            ;subtract eax from ebx
+	mov dl, al                            ;move the value of eax to edx
+	mov bl, string_len - 1    ;move the location of the last element in the array to ebx
+	sub bl, al                            ;subtract eax from ebx
 
 	;swap array locations
-	mov ax, [string + edx]  ;move the value of the array (start location + edx) to eax
-	xchg ax, [string + ebx] ;swap the vlaue of the array (start location + ebx) with eax
-	xchg ax, [string + edx] ;swap the vlaue of the array (start location + edx) with eax
+	mov al, [string + edx]  ;move the value of the array (start location + edx) to eax
+	xchg al, [string + ebx] ;swap the vlaue of the array (start location + ebx) with eax
+	xchg al, [string + edx] ;swap the vlaue of the array (start location + edx) with eax
 
 	;increment i by 1
 	mov edx, [i]    ;move the value of i to edx
